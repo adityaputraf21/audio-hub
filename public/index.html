@@ -93,8 +93,8 @@
 
           <div class="grid2">
             <div class="field-box">
-              <div class="field-head"><span>⏱ SPEED</span><span class="pill" id="speedVal">2.30x</span></div>
-              <input type="range" id="speedSlider" min="0.5" max="3" step="0.01" value="2.3" />
+              <div class="field-head"><span>⏱ SPEED</span><span class="pill" id="speedVal">2.00x</span></div>
+              <input type="range" id="speedSlider" min="0.5" max="3" step="0.01" value="2.0" />
               <div class="scale-labels"><span>0.50×</span><span class="safe">● Safe Zone</span><span>3.00×</span></div>
             </div>
             <div class="field-box">
@@ -105,8 +105,8 @@
           </div>
 
           <div class="field-box full">
-            <div class="field-head"><span>🎼 PITCH (SEMITONES)</span><span class="pill" id="pitchVal">+0st</span></div>
-            <input type="range" id="pitchSlider" min="-12" max="12" step="1" value="0" />
+            <div class="field-head"><span>🎼 PITCH (SEMITONES)</span><span class="pill" id="pitchVal">+12st</span></div>
+            <input type="range" id="pitchSlider" min="-12" max="12" step="1" value="12" />
             <div class="scale-labels"><span>-12 (lebih rendah)</span><span>0 (asli)</span><span>+12 (lebih tinggi)</span></div>
           </div>
 
@@ -126,14 +126,14 @@
 
           <div class="field-box full playback-normal">
             <span><span class="dot"></span> PLAYBACK SPEED NORMAL:</span>
-            <span id="playbackNormalVal">0.43</span>
+            <span id="playbackNormalVal">0.50</span>
           </div>
 
           <div class="field-box full playback-normal">
             <span><span class="dot pitch-dot"></span> PITCH COMPENSATION (OCTAVE):</span>
             <span id="pitchCompensationVal">2.00</span>
           </div>
-          <p id="pitchCapNote" class="pitch-cap-note">⚠ Roblox membatasi Octave maksimal 2.0 — di speed ini nada gak bisa dikompensasi 100%.</p>
+          <p id="pitchCapNote" class="pitch-cap-note hidden">⚠ Roblox membatasi Octave maksimal 2.0 — di speed ini nada gak bisa dikompensasi 100%.</p>
 
           <button class="convert-btn" id="convertBtn">📄 Convert</button>
 
