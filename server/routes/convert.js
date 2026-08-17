@@ -17,15 +17,16 @@ const upload = multer({ dest: TMP_DIR, limits: { fileSize: 100 * 1024 * 1024 } }
 // Music the frontend already resolved it to a matching YouTube link via
 // /api/resolve, since those platforms are DRM'd and never give raw audio).
 router.post("/", requireAuth, checkUsageLimit, async (req, res) => {
-  const { url, speed, amplifyDb, format, title, artist } = req.body;
+  const { url, speed, amplifyDb, pitch, format, title, artist } = req.body;
   if (!url) return res.status(400).json({ error: "url wajib diisi" });
 
   let rawPath;
   try {
     rawPath = await ytdlp.downloadAudio(url);
-    const outPath = await ffmpeg.process(rawPath, {
+    const { outPath, pitchApplied } = await ffmpeg.process(rawPath, {
       speed: Number(speed) || 1.0,
       amplifyDb: Number(amplifyDb) || 0,
+      pitchSemitones: Number(pitch) || 0,
       format: format === "ogg" ? "ogg" : "mp3",
     });
 
@@ -39,6 +40,7 @@ router.post("/", requireAuth, checkUsageLimit, async (req, res) => {
       title: title || "Untitled",
       artist: artist || "Unknown",
       format: format === "ogg" ? "ogg" : "mp3",
+      pitchApplied,
       usage: req.usageInfo,
     });
   } catch (err) {
@@ -53,13 +55,14 @@ router.post("/", requireAuth, checkUsageLimit, async (req, res) => {
 router.post("/upload-file", requireAuth, checkUsageLimit, upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "File audio wajib diupload" });
 
-  const { speed, amplifyDb, format, title, artist } = req.body;
+  const { speed, amplifyDb, pitch, format, title, artist } = req.body;
   const rawPath = req.file.path;
 
   try {
-    const outPath = await ffmpeg.process(rawPath, {
+    const { outPath, pitchApplied } = await ffmpeg.process(rawPath, {
       speed: Number(speed) || 1.0,
       amplifyDb: Number(amplifyDb) || 0,
+      pitchSemitones: Number(pitch) || 0,
       format: format === "ogg" ? "ogg" : "mp3",
     });
 
@@ -73,6 +76,7 @@ router.post("/upload-file", requireAuth, checkUsageLimit, upload.single("file"),
       title: title || req.file.originalname.replace(/\.[^.]+$/, "") || "Untitled",
       artist: artist || "Unknown",
       format: format === "ogg" ? "ogg" : "mp3",
+      pitchApplied,
       usage: req.usageInfo,
     });
   } catch (err) {
