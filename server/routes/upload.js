@@ -35,6 +35,7 @@ router.post("/", requireAuth, async (req, res) => {
     });
 
     const stats = fs.statSync(filePath);
+    const status = result.pending ? "pending" : result.rejected ? "removed" : "active";
     await db.insertUploadRecord({
       id: uuid(),
       userId: req.user.id,
@@ -42,14 +43,15 @@ router.post("/", requireAuth, async (req, res) => {
       artist: artist || null,
       assetId: result.assetId || null,
       operationId: result.pending ? result.operationId : null,
-      status: result.pending ? "pending" : "active",
+      status,
+      rejectReason: result.rejected ? result.rejectReason : null,
       format: path.extname(filePath).replace(".", "") || null,
       sizeMb: (stats.size / (1024 * 1024)).toFixed(2),
       creator: resolvedCreator,
       createdAt: new Date().toISOString(),
     });
 
-    res.json({ success: true, assetId: result.assetId, pending: result.pending, raw: result.raw });
+    res.json({ success: true, assetId: result.assetId, pending: result.pending, rejected: result.rejected, rejectReason: result.rejectReason, raw: result.raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
