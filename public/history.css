@@ -25,6 +25,14 @@
 .status-badge.pending { background: rgba(242,185,61,0.15); color: var(--warn); }
 .status-badge.removed { background: rgba(239,74,74,0.15); color: var(--danger); }
 
+.auto-poll-note {
+  font-size: 12px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 9px 14px; margin-bottom: 16px;
+}
+.auto-poll-note.hidden { display: none; }
+
+.reject-reason { font-size: 11px; color: var(--danger); margin-top: 4px; font-family: monospace; }
+
 .asset-id-btn { background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; font-family: monospace; }
 .asset-id-btn:hover { border-color: var(--accent); color: var(--text); }
 .recheck-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; }
