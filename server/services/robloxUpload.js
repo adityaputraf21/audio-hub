@@ -40,21 +40,50 @@ async function pollOperation(operationId, apiKey, { attempts = 15, delayMs = 200
     const res = await fetch(url, { headers: { "x-api-key": apiKey } });
     const body = await res.json().catch(() => ({}));
     if (body.done) {
-      if (body.error) throw new Error(`Roblox menolak asset: ${JSON.stringify(body.error)}`);
-      return { assetId: body.response?.assetId, pending: false, raw: body };
+      // Operation finished — either the asset was created (assetId present)
+      // or Roblox rejected it outright (body.error present). Neither case
+      // throws: both are legitimate outcomes we want to record in history,
+      // not treat as our own request failing.
+      if (body.error) return { assetId: null, pending: false, rejected: true, rejectReason: JSON.stringify(body.error), raw: body };
+      return { assetId: body.response?.assetId, pending: false, rejected: false, raw: body };
     }
     await new Promise((r) => setTimeout(r, delayMs));
   }
-  return { assetId: null, pending: true, raw: null };
+  // Still moderating after ~30s — not a failure, just needs more time.
+  return { assetId: null, pending: true, rejected: false, raw: null };
 }
 
+// Re-check a pending operation later (called from the history recheck route)
 async function checkOperation(operationId, apiKey) {
   const url = `https://apis.roblox.com/assets/v1/operations/${operationId}`;
   const res = await fetch(url, { headers: { "x-api-key": apiKey } });
   const body = await res.json().catch(() => ({}));
-  if (!body.done) return { assetId: null, pending: true, raw: body };
-  if (body.error) throw new Error(`Roblox menolak asset: ${JSON.stringify(body.error)}`);
-  return { assetId: body.response?.assetId, pending: false, raw: body };
+  if (!body.done) return { assetId: null, pending: true, rejected: false, raw: body };
+  if (body.error) return { assetId: null, pending: false, rejected: true, rejectReason: JSON.stringify(body.error), raw: body };
+  return { assetId: body.response?.assetId, pending: false, rejected: false, raw: body };
 }
 
-module.exports = { uploadAudio, checkOperation };
+// Checks the CURRENT moderation state of an already-created asset — this is
+// the closest thing Roblox's Open Cloud API offers to a "was this taken
+// down" check. IMPORTANT LIMITATION: as of writing, Roblox has no fully
+// reliable public API for detecting post-hoc moderation actions (e.g. an
+// asset removed days later after a user report) — this reflects the
+// asset's moderation state at the time of the call, which is usually
+// accurate shortly after upload but isn't guaranteed to update in real time
+// for actions taken much later. See:
+// https://devforum.roblox.com/t/api-to-get-moderation-status-of-an-item/4251659
+async function getAssetModerationState(assetId, apiKey) {
+  const url = `https://apis.roblox.com/assets/v1/assets/${assetId}?readMask=moderationResult`;
+  const res = await fetch(url, { headers: { "x-api-key": apiKey } });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Gagal cek status asset (HTTP ${res.status}): ${body.message || JSON.stringify(body)}`);
+
+  const state = body.moderationResult?.moderationState || null;
+  // Observed/likely values: "Reviewing", "Approved", "Rejected" — treat
+  // anything unrecognized as "active" rather than incorrectly flag it removed.
+  if (state === "Rejected") return { status: "removed", raw: body };
+  if (state === "Reviewing") return { status: "pending", raw: body };
+  return { status: "active", raw: body };
+}
+
+module.exports = { uploadAudio, checkOperation, getAssetModerationState };
