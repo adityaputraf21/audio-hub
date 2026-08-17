@@ -1,6 +1,7 @@
 if (!requireLogin()) throw new Error("redirecting");
 
 const state = { all: [], activeStatus: "all", query: "" };
+const AUTO_POLL_INTERVAL_MS = 15000;
 
 const els = {
   grid: document.getElementById("historyGrid"),
@@ -16,7 +17,17 @@ const els = {
   whoAvatar: document.getElementById("whoAvatar"),
   adminNavLink: document.getElementById("adminNavLink"),
   logoutBtn: document.getElementById("logoutBtn"),
+  autoPollNote: document.getElementById("autoPollNote"),
 };
+
+function getStoredRobloxApiKey() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("robloxAudioCreds") || "{}");
+    return saved.apiKey || null;
+  } catch {
+    return null;
+  }
+}
 
 async function loadWho() {
   try {
@@ -30,8 +41,8 @@ async function loadWho() {
 }
 els.logoutBtn.addEventListener("click", () => { clearSession(); window.location.href = "login.html"; });
 
-async function loadHistory() {
-  els.grid.innerHTML = `<div class="empty-state"><p>Loading...</p></div>`;
+async function loadHistory(silent) {
+  if (!silent) els.grid.innerHTML = `<div class="empty-state"><p>Loading...</p></div>`;
   try {
     const res = await fetch("/api/history", { headers: authHeaders() });
     if (res.status === 401) { clearSession(); window.location.href = "login.html"; return; }
@@ -39,7 +50,7 @@ async function loadHistory() {
     state.all = data.history || [];
     render();
   } catch {
-    els.grid.innerHTML = `<div class="empty-state"><p>GAGAL MEMUAT DATA</p></div>`;
+    if (!silent) els.grid.innerHTML = `<div class="empty-state"><p>GAGAL MEMUAT DATA</p></div>`;
   }
 }
 
@@ -68,20 +79,24 @@ function render() {
   filtered.forEach((entry) => els.grid.appendChild(buildRow(entry)));
 }
 
+const STATUS_LABELS = { active: "active", pending: "pending", removed: "rejected/removed" };
+
 function buildRow(entry) {
   const row = document.createElement("div");
   row.className = "asset-row";
   const status = entry.status || "active";
   const when = new Date(entry.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   const assetLabel = entry.assetId ? `rbxassetid://${entry.assetId}` : "—";
+  const reasonLine = status === "removed" && entry.rejectReason ? `<div class="reject-reason">${escapeHtml(entry.rejectReason.slice(0, 150))}</div>` : "";
 
   row.innerHTML = `
     <div class="asset-info">
       <span class="asset-title">${escapeHtml(entry.title)}</span>
       <span class="asset-meta">${entry.artist ? escapeHtml(entry.artist) + " · " : ""}${entry.format || ""} · ${entry.sizeMb || "?"} MB · ${when}</span>
+      ${reasonLine}
     </div>
     <div class="asset-right">
-      <span class="status-badge ${status}">${status}</span>
+      <span class="status-badge ${status}">${STATUS_LABELS[status] || status}</span>
       <button class="asset-id-btn" data-copy="${assetLabel}">${assetLabel}</button>
       ${status === "pending" ? `<button class="recheck-btn" data-recheck="${entry.id}">Recheck</button>` : ""}
     </div>`;
@@ -103,7 +118,8 @@ async function recheckEntry(id, btnEl) {
   btnEl.disabled = true;
   btnEl.textContent = "Checking...";
   try {
-    const apiKey = prompt("Masukin Open Cloud API Key Roblox buat re-check status:");
+    let apiKey = getStoredRobloxApiKey();
+    if (!apiKey) apiKey = prompt("Masukin Open Cloud API Key Roblox buat re-check status (simpan di halaman Audio Converter biar gak ditanya lagi):");
     if (!apiKey) { btnEl.disabled = false; btnEl.textContent = "Recheck"; return; }
     const res = await fetch(`/api/history/${id}/recheck`, {
       method: "POST",
@@ -117,6 +133,46 @@ async function recheckEntry(id, btnEl) {
     alert(`Gagal recheck: ${err.message}`);
     btnEl.disabled = false;
     btnEl.textContent = "Recheck";
+  }
+}
+
+// ---------- auto-poll pending items using the saved API key ----------
+// LIMITATION: this reflects Roblox's initial moderation outcome. There is
+// no official Roblox API to detect an asset being taken down later (e.g.
+// from a user report days after upload) — so "active" here means "passed
+// Roblox's automated review", not "guaranteed to stay up forever".
+let pollTimer = null;
+async function autoPollPending() {
+  const hasPending = state.all.some((h) => h.status === "pending");
+  const apiKey = getStoredRobloxApiKey();
+
+  if (els.autoPollNote) {
+    if (!apiKey) {
+      els.autoPollNote.textContent = "💡 Simpan Open Cloud API Key di halaman Audio Converter biar status pending di-cek otomatis di sini.";
+      els.autoPollNote.classList.remove("hidden");
+    } else if (hasPending) {
+      els.autoPollNote.textContent = "🔄 Auto-refresh aktif — status pending dicek ulang tiap 15 detik.";
+      els.autoPollNote.classList.remove("hidden");
+    } else {
+      els.autoPollNote.classList.add("hidden");
+    }
+  }
+
+  if (!apiKey || !hasPending) return;
+
+  try {
+    const res = await fetch("/api/history/recheck-all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ apiKey }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      state.all = data.history || state.all;
+      render();
+    }
+  } catch {
+    // silent — will just retry on the next interval tick
   }
 }
 
@@ -140,7 +196,7 @@ els.searchInput.addEventListener("input", () => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => { state.query = els.searchInput.value.trim(); render(); }, 200);
 });
-els.refreshBtn.addEventListener("click", loadHistory);
+els.refreshBtn.addEventListener("click", () => loadHistory());
 
 els.exportBtn.addEventListener("click", async () => {
   els.exportBtn.disabled = true;
@@ -166,4 +222,7 @@ els.exportBtn.addEventListener("click", async () => {
 });
 
 loadWho();
-loadHistory();
+loadHistory().then(() => {
+  autoPollPending();
+  pollTimer = setInterval(autoPollPending, AUTO_POLL_INTERVAL_MS);
+});
