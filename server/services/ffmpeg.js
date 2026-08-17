@@ -54,17 +54,39 @@ function hasRubberband() {
  * @param {object} opts
  * @param {number} opts.speed
  * @param {number} opts.amplifyDb
+ * @param {number} opts.pitchSemitones  e.g. -12 to +12 (0 = no pitch change)
  * @param {"mp3"|"ogg"} opts.format
  */
-async function processAudio(inputPath, { speed = 1.0, amplifyDb = 0, format = "mp3" } = {}) {
+async function processAudio(inputPath, { speed = 1.0, amplifyDb = 0, pitchSemitones = 0, format = "mp3" } = {}) {
   const id = uuid();
   const ext = format === "ogg" ? "ogg" : "mp3";
   const outPath = path.join(TMP_DIR, `${id}.out.${ext}`);
 
   const filters = [];
-  if (speed && speed !== 1.0) {
+  const needsTempo = speed && speed !== 1.0;
+  const needsPitch = pitchSemitones && pitchSemitones !== 0;
+  let pitchApplied = false;
+
+  if (needsTempo || needsPitch) {
     const useRubberband = await hasRubberband();
-    filters.push(useRubberband ? `rubberband=tempo=${speed.toFixed(4)}` : buildAtempoChain(speed));
+    if (useRubberband) {
+      // rubberband handles tempo and pitch as independent parameters in one
+      // pass — pitch is a frequency ratio, so convert semitones -> ratio.
+      const parts = [];
+      if (needsTempo) parts.push(`tempo=${speed.toFixed(4)}`);
+      if (needsPitch) {
+        const pitchRatio = Math.pow(2, pitchSemitones / 12);
+        parts.push(`pitch=${pitchRatio.toFixed(6)}`);
+        pitchApplied = true;
+      }
+      filters.push(`rubberband=${parts.join(":")}`);
+    } else {
+      // No rubberband available: fall back to atempo for tempo only.
+      // There's no safe simple fallback for independent pitch-shifting
+      // without rubberband, so pitch is skipped rather than risk a bad
+      // (asetrate-based) hack that also messes with tempo.
+      if (needsTempo) filters.push(buildAtempoChain(speed));
+    }
   }
   if (amplifyDb && amplifyDb !== 0) filters.push(`volume=${amplifyDb}dB`);
 
@@ -76,7 +98,7 @@ async function processAudio(inputPath, { speed = 1.0, amplifyDb = 0, format = "m
   args.push(outPath);
 
   await run(args);
-  return outPath;
+  return { outPath, pitchApplied: needsPitch ? pitchApplied : true }; // true (no-op) when pitch wasn't requested
 }
 
 module.exports = { process: processAudio, buildAtempoChain, hasRubberband };
