@@ -35,14 +35,45 @@ router.post("/:id/recheck", requireAuth, async (req, res) => {
 
   try {
     const result = await checkOperation(record.operationId, key);
+    const status = result.pending ? "pending" : result.rejected ? "removed" : "active";
     const updated = await db.updateUploadRecord(record.id, {
       assetId: result.assetId || record.assetId,
-      status: result.pending ? "pending" : "active",
+      status,
+      rejectReason: result.rejected ? result.rejectReason : record.rejectReason || null,
     });
     res.json({ record: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Bulk version — used by the History page's auto-poll so the person doesn't
+// have to click Recheck on every pending item individually. Only touches
+// records still in "pending" status; skips everything already resolved.
+router.post("/recheck-all", requireAuth, async (req, res) => {
+  const { apiKey } = req.body;
+  const key = apiKey || process.env.ROBLOX_API_KEY;
+  if (!key) return res.status(400).json({ error: "API Key Roblox dibutuhkan buat re-check status" });
+
+  const pendingRecords = db.getUploadHistory(req.user.id, 1000).filter((r) => r.status === "pending" && r.operationId);
+
+  const results = [];
+  for (const record of pendingRecords) {
+    try {
+      const result = await checkOperation(record.operationId, key);
+      const status = result.pending ? "pending" : result.rejected ? "removed" : "active";
+      const updated = await db.updateUploadRecord(record.id, {
+        assetId: result.assetId || record.assetId,
+        status,
+        rejectReason: result.rejected ? result.rejectReason : record.rejectReason || null,
+      });
+      results.push(updated);
+    } catch {
+      results.push(record); // leave unchanged on transient error, don't fail the whole batch
+    }
+  }
+
+  res.json({ checked: results.length, history: db.getUploadHistory(req.user.id, 200) });
 });
 
 module.exports = router;
