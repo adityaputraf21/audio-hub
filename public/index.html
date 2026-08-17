@@ -105,6 +105,12 @@
           </div>
 
           <div class="field-box full">
+            <div class="field-head"><span>🎼 PITCH (SEMITONES)</span><span class="pill" id="pitchVal">+0st</span></div>
+            <input type="range" id="pitchSlider" min="-12" max="12" step="1" value="0" />
+            <div class="scale-labels"><span>-12 (lebih rendah)</span><span>0 (asli)</span><span>+12 (lebih tinggi)</span></div>
+          </div>
+
+          <div class="field-box full">
             <div class="field-head"><span>♪ AUDIO FORMAT</span></div>
             <select id="formatSelect">
               <option value="mp3">MP3 (Recommended)</option>
@@ -122,6 +128,12 @@
             <span><span class="dot"></span> PLAYBACK SPEED NORMAL:</span>
             <span id="playbackNormalVal">0.43</span>
           </div>
+
+          <div class="field-box full playback-normal">
+            <span><span class="dot pitch-dot"></span> PITCH COMPENSATION (OCTAVE):</span>
+            <span id="pitchCompensationVal">2.00</span>
+          </div>
+          <p id="pitchCapNote" class="pitch-cap-note">⚠ Roblox membatasi Octave maksimal 2.0 — di speed ini nada gak bisa dikompensasi 100%.</p>
 
           <button class="convert-btn" id="convertBtn">📄 Convert</button>
 
