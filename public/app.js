@@ -219,11 +219,6 @@ function resetTrack(keepFile) {
 }
 
 // ---------- Roblox compensation script generator ----------
-// Sound.PlaybackSpeed changes BOTH tempo and pitch together (unlike our
-// rubberband conversion, which preserves pitch). So restoring the original
-// tempo in-game with just PlaybackSpeed would also drop the pitch — we pair
-// it with a PitchShiftSoundEffect to compensate. Roblox caps Octave at 2.0,
-// so speeds above 2x can't be fully corrected — we note that in the script.
 function buildRobloxScript(speed, assetId) {
   const playbackSpeed = (1 / speed).toFixed(4);
   const octaveNeeded = speed;
@@ -307,9 +302,9 @@ els.formatSelect.addEventListener("change", () => {
 
 els.resetDefaultBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-  els.speedSlider.value = 2.3;
+  els.speedSlider.value = 2.0;
   els.ampSlider.value = -4;
-  els.pitchSlider.value = 0;
+  els.pitchSlider.value = 12;
   els.formatSelect.value = "mp3";
   els.speedSlider.dispatchEvent(new Event("input"));
   els.ampSlider.dispatchEvent(new Event("input"));
@@ -436,7 +431,7 @@ els.uploadBtn.addEventListener("click", async () => {
     if (data.pending) logLine(`Upload terkirim, masih diproses Roblox (pending). Cek Audio History nanti.`, "ok");
     else {
       logLine(`Upload berhasil! Asset ID: ${data.assetId}`, "ok");
-      showScriptCard(els.speedSlider.value, data.assetId); // update script with the real Asset ID
+      showScriptCard(els.speedSlider.value, data.assetId);
     }
   } catch (err) {
     logLine(`Gagal: ${err.message}`, "err");
