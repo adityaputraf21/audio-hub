@@ -77,6 +77,17 @@ select, .field input { width: 100%; background: var(--panel); border: 1px solid 
 .convert-result-actions .ghost-btn { flex: 1; }
 .convert-result-actions .convert-btn { flex: 1.4; padding: 10px; font-size: 13px; }
 
+.script-card { margin-top: 14px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.script-card.hidden { display: none; }
+.script-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; }
+.script-card-head strong { display: block; font-size: 13px; }
+.script-note { font-size: 11px; color: var(--warn); margin: 0 0 10px; line-height: 1.5; }
+.script-output {
+  width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: "Courier New", monospace; font-size: 12px; padding: 12px;
+  resize: vertical; line-height: 1.6;
+}
+
 .log { margin-top: 16px; font-size: 12px; color: var(--muted); white-space: pre-wrap; line-height: 1.7; }
 .log .line-err { color: var(--danger); }
 .log .line-ok { color: var(--accent); }
