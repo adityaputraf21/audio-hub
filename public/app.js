@@ -37,11 +37,15 @@ const els = {
   speedVal: document.getElementById("speedVal"),
   ampSlider: document.getElementById("ampSlider"),
   ampVal: document.getElementById("ampVal"),
+  pitchSlider: document.getElementById("pitchSlider"),
+  pitchVal: document.getElementById("pitchVal"),
   formatSelect: document.getElementById("formatSelect"),
   formatDetailLabel: document.getElementById("formatDetailLabel"),
   formatDetailValue: document.getElementById("formatDetailValue"),
   creatorSelect: document.getElementById("creatorSelect"),
   playbackNormalVal: document.getElementById("playbackNormalVal"),
+  pitchCompensationVal: document.getElementById("pitchCompensationVal"),
+  pitchCapNote: document.getElementById("pitchCapNote"),
   resetDefaultBtn: document.getElementById("resetDefaultBtn"),
   convertBtn: document.getElementById("convertBtn"),
   convertResult: document.getElementById("convertResult"),
@@ -283,8 +287,16 @@ els.speedSlider.addEventListener("input", () => {
   const speed = Number(els.speedSlider.value);
   els.speedVal.textContent = `${speed.toFixed(2)}x`;
   els.playbackNormalVal.textContent = (1 / speed).toFixed(2);
+
+  const octaveCapped = Math.min(speed, 2);
+  els.pitchCompensationVal.textContent = octaveCapped.toFixed(2);
+  els.pitchCapNote.classList.toggle("hidden", speed <= 2);
 });
 els.ampSlider.addEventListener("input", () => { els.ampVal.textContent = `${els.ampSlider.value}dB`; });
+els.pitchSlider.addEventListener("input", () => {
+  const val = Number(els.pitchSlider.value);
+  els.pitchVal.textContent = `${val > 0 ? "+" : ""}${val}st`;
+});
 
 const FORMAT_DETAILS = { mp3: { label: "High quality audio", value: "192 kbps" }, ogg: { label: "Smaller file size", value: "~128 kbps (VBR)" } };
 els.formatSelect.addEventListener("change", () => {
@@ -297,9 +309,11 @@ els.resetDefaultBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   els.speedSlider.value = 2.3;
   els.ampSlider.value = -4;
+  els.pitchSlider.value = 0;
   els.formatSelect.value = "mp3";
   els.speedSlider.dispatchEvent(new Event("input"));
   els.ampSlider.dispatchEvent(new Event("input"));
+  els.pitchSlider.dispatchEvent(new Event("input"));
   els.formatSelect.dispatchEvent(new Event("change"));
   logLine("Advanced settings direset ke default.", "");
 });
@@ -319,6 +333,7 @@ els.convertBtn.addEventListener("click", async () => {
       form.append("file", state.selectedFile);
       form.append("speed", els.speedSlider.value);
       form.append("amplifyDb", els.ampSlider.value);
+      form.append("pitch", els.pitchSlider.value);
       form.append("format", els.formatSelect.value);
       form.append("title", state.track.title);
       form.append("artist", state.track.artist || "");
@@ -335,6 +350,7 @@ els.convertBtn.addEventListener("click", async () => {
           url: state.track.sourceUrl,
           speed: els.speedSlider.value,
           amplifyDb: els.ampSlider.value,
+          pitch: els.pitchSlider.value,
           format: els.formatSelect.value,
           title: state.track.title,
           artist: state.track.artist,
@@ -346,6 +362,9 @@ els.convertBtn.addEventListener("click", async () => {
     }
 
     logLine(`Convert selesai: ${convertData.title} (${convertData.sizeMb} MB, ${convertData.format})`, "ok");
+    if (Number(els.pitchSlider.value) !== 0 && convertData.pitchApplied === false) {
+      logLine("⚠ Pitch gak ke-apply (ffmpeg server gak punya filter rubberband). Hasil convert cuma kena speed/amplify.", "err");
+    }
     state.fileId = convertData.fileId;
     state.convertedMeta = convertData;
     loadMe();
