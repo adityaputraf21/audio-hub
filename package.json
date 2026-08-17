@@ -1,0 +1,23 @@
+{
+  "name": "audio-hub",
+  "version": "1.0.0",
+  "description": "Multi-platform audio converter (YouTube, Spotify, SoundCloud, TikTok, Apple Music) that uploads straight to Roblox via Open Cloud.",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "multer": "^1.4.5-lts.1",
+    "form-data": "^4.0.0",
+    "node-fetch": "^2.7.0",
+    "uuid": "^9.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
+    "midtrans-client": "^1.4.3"
+  }
+}

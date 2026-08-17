@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Audio History — Audio Hub</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="converter.css" />
+<link rel="stylesheet" href="history.css" />
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="logo-dot">🎧</span> Audio Hub</div>
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link"><span class="icon">🎵</span> Audio Converter</a>
+    <a href="history.html" class="nav-link active"><span class="icon">🕘</span> Audio History</a>
+    <a href="admin.html" class="nav-link" id="adminNavLink" style="display:none"><span class="icon">🛠</span> Admin Panel</a>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="who"><img id="whoAvatar" src="" style="display:none" /><span>Halo, <strong id="whoName">—</strong></span></div>
+      <button class="link-btn" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="history-header">
+      <div class="page-head">
+        <h1>Audio History</h1>
+        <p>List semua audio yang berhasil di-convert dan upload ke Roblox</p>
+      </div>
+      <div class="history-header-actions">
+        <input id="searchInput" type="text" placeholder="Search assets..." />
+        <button class="ghost-btn" id="refreshBtn" title="Refresh">⟳</button>
+        <button class="ghost-btn" id="exportBtn">⬇ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="tabs" id="statusTabs">
+      <button class="status-tab active" data-status="all">All <span class="count" id="countAll">0</span></button>
+      <button class="status-tab" data-status="active">Active <span class="count" id="countActive">0</span></button>
+      <button class="status-tab" data-status="pending">Pending <span class="count" id="countPending">0</span></button>
+      <button class="status-tab" data-status="removed">Removed <span class="count" id="countRemoved">0</span></button>
+    </div>
+
+    <div class="history-grid" id="historyGrid">
+      <div class="empty-state"><div class="empty-icon">◎</div><p>NO ASSETS FOUND</p></div>
+    </div>
+  </main>
+</div>
+
+<script src="auth-common.js"></script>
+<script src="history.js"></script>
+</body>
+</html>

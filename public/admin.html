@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel — Audio Hub</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="converter.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="logo-dot">🎧</span> Audio Hub</div>
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link"><span class="icon">🎵</span> Audio Converter</a>
+    <a href="history.html" class="nav-link"><span class="icon">🕘</span> Audio History</a>
+    <a href="admin.html" class="nav-link active"><span class="icon">🛠</span> Admin Panel</a>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="who"><span>Admin Panel</span></div>
+      <button class="link-btn" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="page-head"><h1>Kelola User</h1><p>Upgrade/downgrade tier, ban, dan lihat statistik</p></div>
+
+    <div class="stat-grid" id="statGrid"></div>
+
+    <table class="admin-table" id="userTable">
+      <thead>
+        <tr><th>User</th><th>Role</th><th>Tier</th><th>Berlaku sampai</th><th>Convert hari ini</th><th>Status</th><th>Aksi</th></tr>
+      </thead>
+      <tbody id="userRows"></tbody>
+    </table>
+
+    <p id="msg" class="auth-msg"></p>
+  </main>
+</div>
+
+<script src="auth-common.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

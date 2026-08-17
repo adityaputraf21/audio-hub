@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Audio Hub</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="converter.css" />
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="logo-dot">🎧</span> Audio Hub</div>
+
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link active"><span class="icon">🎵</span> Audio Converter</a>
+    <a href="history.html" class="nav-link"><span class="icon">🕘</span> Audio History</a>
+    <a href="admin.html" class="nav-link" id="adminNavLink" style="display:none"><span class="icon">🛠</span> Admin Panel</a>
+
+    <div class="sidebar-bottom">
+      <div class="upgrade-card" id="upgradeCard">
+        <div class="crown">👑</div>
+        <h4>Upgrade ke Premium</h4>
+        <p>Unlimited convert, gak dibatasi 2x/hari lagi.</p>
+        <button id="upgradeBtn">Upgrade Now</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="who">
+        <img id="whoAvatar" src="" alt="" style="display:none" />
+        <span>Halo, <strong id="whoName">—</strong></span>
+        <span id="tierBadge" class="badge free">FREE</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="link-btn" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="page-head">
+      <h1>Audio Converter</h1>
+      <p>Paste link dari platform manapun, atau upload file MP3 kamu sendiri.</p>
+    </div>
+
+    <div id="usageBar" class="usage-bar"></div>
+
+    <div class="grid2col">
+
+      <div class="card">
+        <div class="platform-tabs" id="platformTabs">
+          <button class="ptab active" data-platform="youtube">▶ YouTube</button>
+          <button class="ptab" data-platform="spotify">◉ Spotify</button>
+          <button class="ptab" data-platform="soundcloud">☁ SoundCloud</button>
+          <button class="ptab" data-platform="tiktok">♪ TikTok</button>
+          <button class="ptab" data-platform="applemusic">🎵 Apple Music</button>
+          <button class="ptab" data-platform="upload">⬆ Upload MP3</button>
+        </div>
+
+        <div id="linkInputRow" class="input-row">
+          <span class="input-icon" id="inputIcon">▶</span>
+          <input id="urlInput" type="text" placeholder="Paste link YouTube" />
+          <button class="search-btn" id="searchBtn">⌕ Search</button>
+        </div>
+
+        <div id="fileInputRow" class="file-drop hidden">
+          <input type="file" id="fileInput" accept="audio/*" />
+          <label for="fileInput" id="fileDropLabel">📁 Klik buat pilih file audio (MP3, WAV, dll)</label>
+        </div>
+
+        <p class="hint"><span id="status"></span></p>
+
+        <div id="trackCard" class="track-card hidden">
+          <img id="trackThumb" src="" alt="" />
+          <div class="track-info">
+            <div class="track-title" id="trackTitle">—</div>
+            <div class="track-artist" id="trackArtist">—</div>
+            <div class="track-meta" id="trackMeta">—</div>
+          </div>
+        </div>
+
+        <div class="advanced">
+          <div class="advanced-head" id="advToggle">
+            <div><strong>Advanced Settings</strong> <span class="muted small">klik untuk tutup</span></div>
+            <div style="display:flex; align-items:center; gap:14px;">
+              <button class="reset-btn" id="resetDefaultBtn">Reset Default</button>
+              <span id="advArrow">▲</span>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field-box">
+              <div class="field-head"><span>⏱ SPEED</span><span class="pill" id="speedVal">2.30x</span></div>
+              <input type="range" id="speedSlider" min="0.5" max="3" step="0.01" value="2.3" />
+              <div class="scale-labels"><span>0.50×</span><span class="safe">● Safe Zone</span><span>3.00×</span></div>
+            </div>
+            <div class="field-box">
+              <div class="field-head"><span>🔊 AMPLIFY</span><span class="pill" id="ampVal">-4dB</span></div>
+              <input type="range" id="ampSlider" min="-20" max="0" step="1" value="-4" />
+              <div class="scale-labels"><span>-20dB</span><span>0dB</span></div>
+            </div>
+          </div>
+
+          <div class="field-box full">
+            <div class="field-head"><span>♪ AUDIO FORMAT</span></div>
+            <select id="formatSelect">
+              <option value="mp3">MP3 (Recommended)</option>
+              <option value="ogg">OGG (Vorbis)</option>
+            </select>
+            <div class="format-detail"><span id="formatDetailLabel">High quality audio</span><span id="formatDetailValue">192 kbps</span></div>
+          </div>
+
+          <div class="field-box full">
+            <div class="field-head"><span>👤 TARGET CREATOR</span></div>
+            <select id="creatorSelect"><option value="">Isi Roblox Account dulu di kanan →</option></select>
+          </div>
+
+          <div class="field-box full playback-normal">
+            <span><span class="dot"></span> PLAYBACK SPEED NORMAL:</span>
+            <span id="playbackNormalVal">0.43</span>
+          </div>
+
+          <button class="convert-btn" id="convertBtn">📄 Convert</button>
+
+          <div id="convertResult" class="convert-result hidden">
+            <div class="convert-result-info"><strong id="resultTitle">—</strong><span class="muted" id="resultMeta">—</span></div>
+            <div class="convert-result-actions">
+              <button class="ghost-btn" id="downloadBtn">⬇ Download</button>
+              <button class="convert-btn" id="uploadBtn">☁ Upload ke Roblox</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="log" class="log"></div>
+      </div>
+
+      <div class="side-col">
+        <div class="card">
+          <strong>Roblox Account</strong>
+          <div class="field small"><label>Open Cloud API Key</label><input id="apiKeyInput" type="password" placeholder="ROBLOX_API_KEY" /></div>
+          <div class="field small"><label>User ID</label><input id="userIdInput" type="text" placeholder="cth. 9957673890" /></div>
+          <div class="field small"><label>atau Group ID</label><input id="groupIdInput" type="text" placeholder="kosongkan jika pribadi" /></div>
+          <button class="ghost-btn full" id="saveCredsBtn">Simpan (lokal di browser)</button>
+        </div>
+
+        <div class="card">
+          <div class="tip"><strong>Tips:</strong> Jika lagu original kena <b>removed</b>, coba versi <b>LYRICS</b> lalu convert ulang.</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div id="upgradeModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h2>Upgrade ke Premium</h2>
+    <p class="muted">Unlimited convert, gak dibatasi limit harian.</p>
+    <div class="plan-options" id="planOptions"><div class="plan-card muted">Loading plan...</div></div>
+    <button class="link-btn" id="closeModalBtn">Batal</button>
+  </div>
+</div>
+
+<script src="auth-common.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

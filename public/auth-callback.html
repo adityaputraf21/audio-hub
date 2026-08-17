@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Masuk...</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .box { text-align: center; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>Menyelesaikan login...</h1>
+    <p class="muted" id="msg">Tunggu sebentar</p>
+  </div>
+
+<script src="auth-common.js"></script>
+<script>
+  const hash = window.location.hash.slice(1);
+  const params = new URLSearchParams(hash);
+  const token = params.get("token");
+
+  if (!token) {
+    document.getElementById("msg").textContent = "Login gagal, coba lagi.";
+    setTimeout(() => (window.location.href = "login.html"), 1500);
+  } else {
+    localStorage.setItem("authToken", token);
+    window.history.replaceState(null, "", window.location.pathname);
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>
